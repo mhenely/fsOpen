@@ -18,6 +18,29 @@ const Person = ({ name, number, id, handleDelete }) => {
   )
 }
 
+const Notification = ({ error }) => {
+
+  const [ message, type ] = error
+
+  const successStyle = {
+    color: 'green',
+    border: '2px solid green',
+    borderRadius: '5px'
+  }
+
+    const failureStyle = {
+    color: 'red',
+    border: '2px solid red',
+    borderRadius: '10px'
+  }
+
+  return (
+    <div className='error' style={ type === 'success' ? successStyle : failureStyle}>
+      {message}
+    </div>  
+  )
+}
+
 const App = () => {
   const [persons, setPersons] = useState([
     // { name: 'Arto Hellas', number: '040-123456', id: 1 },
@@ -28,6 +51,7 @@ const App = () => {
   const [newName, setNewName] = useState('')
   const [ newNumber, setNewNumber ] = useState('')
   const [ searchName, setSearchName ] = useState('')
+  const [ errorMessage, setErrorMessage ] = useState(['', ''])
 
 
   useEffect(() => {
@@ -58,12 +82,16 @@ const App = () => {
         if (!window.confirm(`Do you want to update ${newName}'s number in the phonebook?`)) {
           return alert(`${newName}'s number not updated'`)
         } else {
-          personService
+          return personService
             .update(inPhonebook.id, {...inPhonebook, number: newNumber})
             .then(updatedPerson => {
               setPersons(persons.map(person => person.id === inPhonebook.id ? updatedPerson : person))
               setNewName('')
               setNewNumber('')
+              setErrorMessage(['Successfully Updated Phonebook', 'success'])
+              setTimeout(() => {
+                setErrorMessage(['', ''])
+              }, 3000)
             })
         }
     }
@@ -81,6 +109,10 @@ const App = () => {
         setPersons([...persons, res])
         setNewName('')
         setNewNumber('')
+        setErrorMessage(['Successfully added to phonebook', 'success'])
+        setTimeout(() => {
+          setErrorMessage(['', ''])
+        }, 3000)
       })
   }
 
@@ -91,12 +123,19 @@ const App = () => {
         const newPersons = persons.filter(person => person.id !== id)
         setPersons(newPersons)
       })
+      .catch(error => {
+        setErrorMessage(['Entry already deleted', 'fail'])
+        setTimeout(() => {
+          setErrorMessage(['', ''])
+        }, 4000)
+      })
 
   }
 
   return (
     <div>
       <h2>Phonebook</h2>
+      {errorMessage[0] && <Notification error={errorMessage} />}
       <input onChange={handleSearchNameInput} />
       <form onSubmit={handleNameSubmit}>
         <div>
